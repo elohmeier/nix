@@ -7,6 +7,7 @@
 project (
   'nix-perl',
   'cpp',
+  version : run_command('cat', './.version', check : true).stdout().strip(),
   meson_version : '>= 0.64.0',
   license : 'LGPL-2.1-or-later',
 )
@@ -14,10 +15,9 @@ project (
 # setup env
 #-------------------------------------------------
 fs = import('fs')
-nix_version = get_option('version')
 cpp = meson.get_compiler('cpp')
 nix_perl_conf = configuration_data()
-nix_perl_conf.set('PACKAGE_VERSION', nix_version)
+nix_perl_conf.set('PACKAGE_VERSION', meson.project_version())
 
 
 # set error arguments
@@ -64,8 +64,11 @@ yath = find_program('yath', required : false)
 bzip2_dep = dependency('bzip2')
 curl_dep = dependency('libcurl')
 libsodium_dep = dependency('libsodium')
-# nix_util_dep = dependency('nix-util')
-nix_store_dep = dependency('nix-store')
+
+nix_store_dep = dependency('nix-store', required : false)
+if not nix_store_dep.found()
+  nix_store_dep = subproject('libstore').get_variable('nix_store')
+endif
 
 
 # Finding Perl Headers is a pain. as they do not have
